@@ -1,0 +1,14 @@
+<div class="tip">
+    <div class="tip__header">
+        <div class="tip__name"><span class="tip__time">[ {{tip.date | date:'HH:mm'}} ]</span> {{tip.name}}</div>
+        <div class="tip__controls">
+            <button mat-icon-button color="primary" (click)="openEditDialog()">
+                <mat-icon>edit</mat-icon>
+            </button>
+            <button mat-icon-button color="primary">
+                <mat-icon>delete</mat-icon>
+            </button>            
+        </div>
+    </div>
+    <div class="tip__message">{{tip.message}}</div>
+</div>
