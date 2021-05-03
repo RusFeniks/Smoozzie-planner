@@ -1,8 +1,19 @@
-const express = require('express')
-const app = express()
+const express = require('express');
+const mysql = require('mysql');
 
-const port = 3000;
+const server = new express();
+const db_connection = mysql.createConnection({
+    host: "localhost", port: "3306",
+    user: "admin", password: "225514"
+});
 
+db_connection.connect(err => {
+    !err && console.log("Соединение с БД установлено");
+    db_connection.end();
+});
+
+
+/*
 const tipList = [];
 tipList.push(
     { date: new Date("2021-04-28T00:00:00.0003"), list: [
@@ -22,4 +33,4 @@ app.get('/', function (req, res) {
  
 app.listen(port, ()=> {
     console.log(`Сервер запущен по адресу http://localhost:${port}`);
-})
+})*/
