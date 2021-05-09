@@ -58,11 +58,11 @@ const DATABASE_INITIALIZATION_SQL = Helper.formatSQL(`
 /*  Пробуем подключиться к базе данных, проверяем и, в случае отсутсвтия,
     создаем структуру таблиц. */
 promiseDatabase.query(DATABASE_INITIALIZATION_SQL)
-    .then(response => {
+    .then(async response => {
         console.log("База данных инициализирована");
 
         const notesManager = new NotesManager(promiseDatabase);
-        notesManager.initTables();
+        await notesManager.initTables();
 
         /* Инициализация web-сервера */
         const server = new express();
@@ -71,6 +71,55 @@ promiseDatabase.query(DATABASE_INITIALIZATION_SQL)
             из библиотеки express. Но я то подключаю его отдельной либой! */
         server.use(bodyParser.json());
         server.use(bodyParser.urlencoded({ extended: true }));
+
+        server.get('/auth', async (req, res) => {
+
+        })
+
+        server.get('/get', async (req, res) => {
+            
+            /** Ответ сервера, который будет отправлен в формате JSON */
+            const answer = {
+                error: null,
+                data: null
+            };
+
+            const user_id = getUserIdByToken(req.query.token);
+
+            [answer.data, answer.error] = await notesManager.getNotesByDate(
+                req.query.date, user_id);
+
+            // Отправляем собранный ответ
+            res.set('Content-Type', 'application/json');
+            res.send(JSON.stringify(answer));
+            res.end();
+
+        });
+
+        server.post('/set', async (req, res) => {
+            
+            /** Ответ сервера, который будет отправлен в формате JSON */
+            const answer = {
+                error: null,
+                data: null
+            };
+
+            const user_id = getUserIdByToken(req.body.toker);
+
+            if (req.body.id) {
+                [answer.data, answer.error] = await notesManager.setNote(
+                    req.body.id, req.body.note, user_id);
+            } else {
+                [answer.data, answer.error] = await notesManager.addNote(
+                    req.body.note, user_id);
+            }
+
+            // Отправляем собранный ответ
+            res.set('Content-Type', 'application/json');
+            res.send(JSON.stringify(answer));
+            res.end();
+
+        })
 
         server.listen(config.web_port, ()=> {
             console.log(`
@@ -83,11 +132,9 @@ promiseDatabase.query(DATABASE_INITIALIZATION_SQL)
         return;
     });
 
-
-function getNotesByDate() {
-
+function getUserIdByToken() {
+    return 1;
 }
-
 
     
 /*
@@ -99,46 +146,15 @@ function getNotesByDate() {
 
     server.get('/get', async function (req, res) {
         
-        /** Ответ сервера, который будет отправлен в формате JSON 
-        const answer = {
-            /* Ошибки мб стоит отправлять как коды, чтобы клиент сам их
-               расшифровывал, как умеет. Но где я эти коды возьму?
-               Придумывать у меня мозг лопнет (если только не 001, 002),
-               спорить 10 часов на тему 403 или 400 я тоже не хочу.
-               Присылать ошибку через http-хедер не вижу смысла т.к. в теории
-               мы не знаем, умеет-ли конечное приложение их читать, оно может
-               получать тупо json, через третий сервис
-               Если делать через коды, то вообще есть варик поменять
-               error на status, чтобы в случае успеха, также об этом сообщать *
-            error: null,
-            data: null
-        };
+        
+        
         
         /* Тут должна быть проверка токена пользователя и получение id *
         const user_id = 1;
 
-        const date = moment(req.query.date);
-        if(date.isValid()) {
+        
 
-            const GET_NOTES_SQL = helper.formatSQL(`SELECT * FROM notes
-                WHERE date = '${date.format('yyyy-MM-DD')}' 
-                AND user_id = ${user_id};`);
-
-            try {
-                const response = await promiseDatabase.query(GET_NOTES_SQL);
-                answer.data = response[0];
-            } catch (error) {
-                answer.error = error.message;
-            }
-            
-        } else {
-            answer.error = "Указанная дата - инвалид";
-        }
-
-        // Отправляем собранный ответ
-        res.set('Content-Type', 'application/json');
-        res.send(JSON.stringify(answer));
-        res.end();
+        
     });
 
 

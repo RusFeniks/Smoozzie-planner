@@ -1,5 +1,6 @@
 const Helper = require("./helper");
 const mysql2 = require("mysql2");
+const moment = require("moment");
 
 class NotesManager {
     
@@ -7,7 +8,9 @@ class NotesManager {
         this.database = database;
     }
     
+    //** Создание начальных таблиц в базе данных */
     async initTables() {
+        
         const InitSQL = Helper.formatSQL(`
 
             CREATE TABLE IF NOT EXISTS notes (
@@ -27,14 +30,68 @@ class NotesManager {
                 password text NOT NULL,
                 PRIMARY KEY (id)
             );
+
         `);
 
-        const result = await this.database.query(InitSQL)
-            .catch((error) => {
-                console.log(error.message);
-            });
+        try {
+            await this.database.query(InitSQL);
+        } catch (error) {
+            console.log(error.message);
+        }
         
         return true;
+    }
+
+
+    //** Получение всех записей из базы данных за указанную дату */
+    async getNotesByDate(_date, _user_id) {
+
+        const date = moment(_date);
+
+        let data, error;
+        
+        if(date.isValid()) {
+
+            const GET_NOTES_SQL = Helper.formatSQL(`
+                SELECT * FROM notes
+                    WHERE date = '${date.format('yyyy-MM-DD')}' 
+                    AND user_id = ${_user_id};
+            `);
+
+            try {
+                const response = await this.database.query(GET_NOTES_SQL);
+                data = response[0];
+            } catch (error) {
+                error = error.message;
+            }
+            
+        } else {
+            error = "Указанная дата - инвалид";
+        }
+
+        return [data, error];
+    }
+
+
+    //** Добавление новой записи */
+    async addNote(_note, _user_id) {
+
+        const SET_NOTE_SQL = Helper.formatSQL(`
+        
+        `);
+
+        return [null, "add"];
+    }
+
+
+    //** Изменение существующей записи */
+    async setNote(_id, _note, _user_id) {
+
+        const SET_NOTE_SQL = Helper.formatSQL(`
+        
+        `);
+
+        return [null, "set"];
     }
 }
 
