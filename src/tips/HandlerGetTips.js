@@ -1,5 +1,5 @@
 const Validate = require('./ValidateTipsData');
-const Error = require('../errors');
+const Error = require('../Errors');
 
 function getTipById(tipsRepo, userId) {
     return async (req, res) => {

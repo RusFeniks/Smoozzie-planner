@@ -1,4 +1,4 @@
-const Error = require('../errors');
+const Error = require('../Errors');
 const Moment = require('moment');
 
 module.exports = {

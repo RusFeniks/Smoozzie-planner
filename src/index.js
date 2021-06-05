@@ -8,12 +8,12 @@ const mysql = require('mysql2');
 
 const TipsRepo = require('./tips/TipsRepository');
 
-const { getTipById, getTipsByDate } = require('./tips/GetTips');
-const addTip = require('./tips/AddTip');
-const updateTip = require('./tips/UpdateTip');
-const deleteTip = require('./tips/DeleteTip');
+const { getTipById, getTipsByDate } = require('./tips/HandlerGetTips');
+const addTip = require('./tips/HandlerAddTip');
+const updateTip = require('./tips/HandlerUpdateTip');
+const deleteTip = require('./tips/HandlerDeleteTip');
 
-const getUserIdByToken = require('./getUserIdByToken');
+const getUserIdByToken = require('./GetUserIdByToken');
 
 
 // Получаем переменные окружения
