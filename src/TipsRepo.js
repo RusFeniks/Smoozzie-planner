@@ -4,9 +4,28 @@ class TipsRepo {
         this.database = database;
     }
 
+    /**
+     * Применяет sql запрос к базе данных
+     * @param {string} sql запрос
+     * @returns результат
+     */
     async appendSQL(sql) {
         const response = await this.database.query(sql);
         return response[0];
+    }
+
+    /**
+     * Получает из базы данных конкретную запись, используя её Id
+     * @param {number} tipId id записи 
+     * @param {number} userId пользователь, для которого получаем запись 
+     * @returns массив, содержащий полученную запись
+     */
+    async getTipById(tipId, userId) {
+        const sql = `SELECT * FROM tips
+        WHERE id = ${tipId} 
+        AND user_id = ${userId};`;
+        
+        return this.appendSQL(sql);
     }
 
     /**
@@ -16,11 +35,10 @@ class TipsRepo {
      * @return массив записей
      */
     async getTipsByDate(date, userId) {
-        
         const sql = `SELECT * FROM tips
         WHERE date = '${date}'
         AND user_id = ${userId};`;
-        userId
+        
         return this.appendSQL(sql);
     }
 
@@ -70,7 +88,8 @@ class TipsRepo {
      */
     async removeTip(id, userId) {
         const sql = `DELETE FROM tips
-        WHERE id = ${id} AND user_id = ${userId}`;
+            WHERE id = ${id} AND user_id = ${userId};`;
+        
         return this.appendSQL(sql)
     }
 

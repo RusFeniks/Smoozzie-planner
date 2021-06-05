@@ -8,6 +8,11 @@ const mysql = require('mysql2');
 
 const TipsRepo = require('./TipsRepo');
 
+const { getTipById, getTipsByDate } = require('./handler/tips/getTips');
+const addTip = require('./handler/tips/addTip');
+const editTip = require('./handler/tips/editTip');
+const deleteTip = require('./handler/tips/deleteTip');
+
 
 // Получаем переменные окружения
 dotenv.config();
@@ -65,39 +70,17 @@ async function run () {
     server.use(bodyParser.json());
     server.use(bodyParser.urlencoded({ extended: true }));
 
-    server.get('/tips', async (req, res) => {
-        
-        res.set('Content-Type', 'application/json');
+    const token = "123abc";
 
-        const date = moment.utc(req.query.date);
-        const userId = getUserIdByToken(req.query.token);
+    server.get('/tips', getTipsByDate(tipsRepo, getUserIdByToken(token)));
+    server.get('/tips/:id', getTipById(tipsRepo, getUserIdByToken(token)));
 
-        try {
-            
-            if(!userId) {
-                res.status(401);
-                throw new Error("Unauthorized");
-            }
+    server.put('/tips/:id', editTip(tipsRepo, getUserIdByToken(token)));
+    server.delete('/tips/:id', deleteTip(tipsRepo, getUserIdByToken(token)));
 
-            if(!date.isValid()) {
-                res.status(400);
-                throw new Error("Date is invalid");
-            }
+    server.post('/tips', addTip(tipsRepo, getUserIdByToken(token)));
 
-            const data = await tipsRepo.getTipsByDate(
-                date.format('yyyy-MM-DD'),
-                userId
-            );
-
-            res.send(JSON.stringify(data));
-            
-        } catch(error) {
-            res.send(JSON.stringify(error.message));
-        }
-
-        res.end();
-        return;
-    });
+    
 
     server.post('/tips', async (req, res) => {
 
@@ -142,6 +125,33 @@ async function run () {
 
         res.end();
         return;
+    });
+
+    server.delete('/tips', async (req, res) => {
+
+        res.set('Content-Type', 'application/json');
+
+        const id = req.body.id;
+        const userId = getUserIdByToken(req.query.token);
+
+        try {
+
+            if(!id) {
+                res.status(400);
+                throw new Error("Tip id is not set");
+            }
+
+            if(!userId) {
+                res.status(401);
+                throw new Error("Unauthorized");
+            }
+
+            const data = tipsRepo.removeTip(id, userId);
+            res.send(JSON.stringify(data));
+
+        } catch (error) {
+            res.send(JSON.stringify(error.message));
+        }
     });
 
     const web_port = process.env.WEB_PORT;
