@@ -48,11 +48,11 @@ class TipsRepo {
      * @param {number} userId пользователь, для которого добавляем запись
      * @return результат выполнения запроса
      */
-    async addTip(tip, userId) {
+    async addTip(tip) {
         const sql = `
             INSERT INTO tips (user_id, date, time, title, message)
             VALUES (
-                ${userId},
+                ${tip.user_id},
                 '${tip.date}',
                 '${tip.time}',
                 '${tip.title}',
@@ -64,18 +64,16 @@ class TipsRepo {
 
     /**
      * Обновляет в базе данных запись с указанным id
-     * @param {number} id id записи
      * @param {object} tip объект с информацией новой записи
-     * @param {number} userId пользователь, для которого добавляем запись
      * @return результат выполнения запроса
      */
-    async updateTip(id, tip, userId) {
+    async updateTip(tip) {
         const sql = `UPDATE tips SET
                 date = '${tip.date}',
                 time = '${tip.time}',
                 title = '${tip.title}',
                 message = '${tip.message}'
-            WHERE id = ${id} AND user_id = ${userId};`;
+            WHERE id = ${tip.id} AND user_id = ${tip.user_id};`;
 
         return this.appendSQL(sql);
     }
@@ -86,7 +84,7 @@ class TipsRepo {
      * @param {number} userId id пользователя
      * @returns результат выполнения запроса
      */
-    async removeTip(id, userId) {
+    async deleteTip(id, userId) {
         const sql = `DELETE FROM tips
             WHERE id = ${id} AND user_id = ${userId};`;
         

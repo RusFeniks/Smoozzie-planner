@@ -6,12 +6,14 @@ const bodyParser = require('body-parser');
 
 const mysql = require('mysql2');
 
-const TipsRepo = require('./TipsRepo');
+const TipsRepo = require('./tips/TipsRepository');
 
-const { getTipById, getTipsByDate } = require('./handler/tips/getTips');
-const addTip = require('./handler/tips/addTip');
-const editTip = require('./handler/tips/editTip');
-const deleteTip = require('./handler/tips/deleteTip');
+const { getTipById, getTipsByDate } = require('./tips/GetTips');
+const addTip = require('./tips/AddTip');
+const updateTip = require('./tips/UpdateTip');
+const deleteTip = require('./tips/DeleteTip');
+
+const getUserIdByToken = require('./getUserIdByToken');
 
 
 // Получаем переменные окружения
@@ -45,14 +47,6 @@ async function createDBConnection () {
 }
 
 /**
- * Временная заглушка, тут будет авторизация
- * @returns userId
- */
-function getUserIdByToken () {
-    return 1;
-}
-
-/**
  * Основная исполняемая функция
  */
 async function run () {
@@ -61,6 +55,7 @@ async function run () {
     const dbConnectionsPoolPromise = await createDBConnection();
     if(!dbConnectionsPoolPromise) { return; }
 
+    // Инициализируем репозиторий
     const tipsRepo = new TipsRepo(dbConnectionsPoolPromise);
 
     // Инициализация web-сервера
@@ -75,86 +70,12 @@ async function run () {
     server.get('/tips', getTipsByDate(tipsRepo, getUserIdByToken(token)));
     server.get('/tips/:id', getTipById(tipsRepo, getUserIdByToken(token)));
 
-    server.put('/tips/:id', editTip(tipsRepo, getUserIdByToken(token)));
+    server.put('/tips/:id', updateTip(tipsRepo, getUserIdByToken(token)));
     server.delete('/tips/:id', deleteTip(tipsRepo, getUserIdByToken(token)));
 
     server.post('/tips', addTip(tipsRepo, getUserIdByToken(token)));
 
-    
-
-    server.post('/tips', async (req, res) => {
-
-        res.set('Content-Type', 'application/json');
-
-        const dateTime = moment(req.body.datetime);
-        const id = req.body.id;
-        const userId = getUserIdByToken(req.query.token);
-
-        try {
-
-            if(!userId) {
-                res.status(401);
-                throw new Error("Unauthorized");
-            }
-
-            if(!dateTime.isValid()) {
-                res.status(400);
-                throw new Error("DateTime is invalid");
-            }
-
-            if(!req.body.title) {
-                res.status(400);
-                throw new Error("Title is not set");
-            }
-
-            const tip = {
-                date: dateTime.format('yyyy-MM-DD'),
-                time: dateTime.format('HH:mm:ss'),
-                title: req.body.title,
-                message: req.body.message
-            }
-
-            const result = id ? await tipsRepo.updateTip(id, tip, userId)
-                : await tipsRepo.addTip(tip, userId);
-
-            res.send(JSON.stringify(result));
-
-        } catch(error) {
-            res.send(JSON.stringify(error.message));
-        }
-
-        res.end();
-        return;
-    });
-
-    server.delete('/tips', async (req, res) => {
-
-        res.set('Content-Type', 'application/json');
-
-        const id = req.body.id;
-        const userId = getUserIdByToken(req.query.token);
-
-        try {
-
-            if(!id) {
-                res.status(400);
-                throw new Error("Tip id is not set");
-            }
-
-            if(!userId) {
-                res.status(401);
-                throw new Error("Unauthorized");
-            }
-
-            const data = tipsRepo.removeTip(id, userId);
-            res.send(JSON.stringify(data));
-
-        } catch (error) {
-            res.send(JSON.stringify(error.message));
-        }
-    });
-
-    const web_port = process.env.WEB_PORT;
+    const web_port = process.env.WEB_PORT || 8080;
     server.listen(web_port, ()=> {
         console.log(`Сервер запущен по адресу http://localhost:${web_port}`);
     });

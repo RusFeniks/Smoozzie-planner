@@ -1,5 +1,3 @@
-function getUserIdByToken(token) {
+module.exports = token => {
     return 1;
 }
-
-module.exports = getUserIdByToken;
