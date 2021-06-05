@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon src/index.js",
-    "migrate": "node migrations.js",
+    "migrate": "node_modules/.bin/db-migrate up",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Kasai",
